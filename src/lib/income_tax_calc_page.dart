@@ -1,16 +1,24 @@
+import 'package:advance_pdf_viewer/advance_pdf_viewer.dart';
 import 'package:flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_jk/flutter_jk.dart'; // KrUtils
 import 'package:flutter_money_formatter/flutter_money_formatter.dart';
+import 'package:get/get.dart';
 import 'package:income_tax_calc/income_tax_table.dart';
 import 'package:income_tax_calc/int_stepper.dart';
 import 'package:income_tax_calc/num_pad.dart';
+import 'package:income_tax_calc/pdf_view_page.dart';
 import 'package:package_info/package_info.dart';
 import 'package:vibration/vibration.dart';
 
-import 'kr_utils.dart';
 import 'money_masked_text_controller.dart';
+import 'utils.dart';
 
 class IncomeTaxCalcPage extends StatefulWidget {
+  final Widget adBanner;
+
+  IncomeTaxCalcPage({this.adBanner});
+
   @override
   _IncometaxCalcState createState() => _IncometaxCalcState();
 }
@@ -19,6 +27,7 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
   int _dependants = 1;
   int _youngDependants = 0;
   int _salary = 0;
+  final _title = '소득세 계산기';
 
   /// 최대 계산 가능 금액 (9999억..., )
   /// 제한금액은 [money_masked_text_controller]의 제한 자리수 기준으로 정했음.
@@ -34,7 +43,7 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
 
   /// 선택 세율(80%, 100%, 120%)
   double _taxRate = 1.0;
-  Flushbar _flushbar = null;
+  Flushbar _flushbar;
 
   Color _fillColor = Colors.grey[100];
   MoneyMaskedTextController _controller = MoneyMaskedTextController(
@@ -111,26 +120,24 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
 
   /// 화면 상단 앱타이틀
   Widget _buildTitle() {
-    return Padding(
-      padding: EdgeInsets.only(left: 10.0, bottom: 10.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Text(
-            "소득세 계산기",
-            style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
-          ),
-          IconButton(
-            icon: Icon(Icons.info_outline),
-            onPressed: () async {
-              PackageInfo packageInfo = await PackageInfo.fromPlatform();
-              showAboutDialog(
-                  context: context,
-                  applicationVersion: packageInfo.version,
-                  applicationLegalese: '오늘 하루도 수고하셨습니다 :)\n',
-                  children: [
-                    Text(
-                      '''"소득세 계산기"는 2020년 2월 개정된 근로소득 간이세액표 기준으로 만들어졌습니다.
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Text(
+          _title,
+          style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+        ),
+        IconButton(
+          icon: Icon(Icons.info_outline),
+          onPressed: () async {
+            PackageInfo packageInfo = await PackageInfo.fromPlatform();
+            showAboutDialog(
+                context: context,
+                applicationVersion: packageInfo.version,
+                applicationLegalese: '오늘 하루도 수고하셨습니다 :)\n',
+                children: [
+                  Text(
+                    '''"소득세 계산기"는 2020년 2월 개정된 근로소득 간이세액표 기준으로 만들어졌습니다.
 해당 프로그램의 계산결과는 참고용 자료이며, 실제 징수세금과는 차이가 있을 수 있습니다.
                 
 - 월급여액은 비과세 소득을 제외한 금액입니다.
@@ -144,18 +151,17 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
 
 문의 : kjk15881588@gmail.com
                 ''',
-                      style: TextStyle(fontSize: 15),
-                    )
-                  ]);
-            },
-          ),
-          Spacer(),
-          Text(
-            _salaryToEmoticon(),
-            style: TextStyle(fontSize: 30),
-          )
-        ],
-      ),
+                    style: TextStyle(fontSize: 15),
+                  )
+                ]);
+          },
+        ),
+        Spacer(),
+        Text(
+          _salaryToEmoticon(),
+          style: TextStyle(fontSize: 30),
+        )
+      ],
     );
   }
 
@@ -171,6 +177,7 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
       decoration: InputDecoration(
         labelText: '월 급여액  ' + moneyString,
         suffixText: '원',
+        isDense: true,
         labelStyle: TextStyle(fontSize: 20.0, fontWeight: FontWeight.normal),
         floatingLabelBehavior: FloatingLabelBehavior.always,
         hintText: '월급여액',
@@ -393,21 +400,20 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
       );
     }
 
-    return Expanded(
-        child: Container(
+    return Container(
       padding: EdgeInsets.all(10),
       width: double.infinity,
       decoration: BoxDecoration(
           borderRadius: BorderRadius.all(_radius), color: Colors.amberAccent),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
           createResultRow('소득세 ', tax),
           createResultRow('지방소득세 ', localTax),
           createResultRow('합계액 ', total),
         ],
       ),
-    ));
+    );
   }
 
   /// 전체 초기화
@@ -438,39 +444,98 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
     );
   }
 
+  Widget _buildDrawer() {
+    const EdgeInsetsGeometry padding = EdgeInsets.only(left: 10, top: 10);
+    const String taxTable = '근로소득 간이세액표';
+    return Drawer(
+        child: ListView(
+      padding: EdgeInsets.zero,
+      children: [
+        SizedBox(
+            height: 60,
+            child: DrawerHeader(
+              margin: EdgeInsets.zero,
+              padding: padding,
+              decoration: BoxDecoration(color: Colors.amberAccent),
+              child: Text(_title, style: TextStyle(fontSize: 24)),
+            )),
+        ListTile(
+          leading: Icon(Icons.picture_as_pdf),
+          title: Text(taxTable),
+          onTap: () async {
+            const String assetFile = 'assets/2020_income_tax_table.pdf';
+            final document = await PDFDocument.fromAsset(assetFile);
+
+            Get.to(PdfViewPage(document,
+                bottomAd: widget.adBanner, title: taxTable));
+            /*
+            final file = await Utils.fromAsset(
+                //'assets/_nts_data_info_조회_2020년_근로소득_간이세액표(조견표).pdf',
+                'assets/2020_income_tax_table.pdf',
+                '2020_income_tax_table.pdf');
+
+            Get.to(PdfViewPage(
+              file.path,
+              bottomAd: this.widget.adBanner,
+              title: taxTable,
+            ));
+            */
+          },
+        ),
+      ],
+    ));
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(10, 10, 10, 0),
-      child: Column(
-        children: [
-          _buildTitle(),
-          _builTextInput(),
-          //_buildMoneyHelpText(),
-          _buildDependantsInput(),
-          _buildYoungDependants(),
-          _buildTaxRateToggleButtons(),
-          Padding(padding: EdgeInsets.all(5)),
-          _buildResultView(),
-          //_buildResetButton(),
-          _buildEasyMoneyButtons(),
-          NumPad(
-            height: 190,
-            onPressed: (value) {
-              _vibrate();
-              _controller.insertInt(value);
-            },
-            onBackspace: () {
-              _vibrate();
-              _controller.removeNumber();
-            },
-            onClear: () {
-              _vibrate();
-              _clearAll();
-            },
-          ),
-        ],
+    const Color bgColor = Colors.white;
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: bgColor,
+        shadowColor: Colors.transparent,
+        title: _buildTitle(),
       ),
+      drawer: _buildDrawer(),
+      body: SafeArea(
+          child: Column(children: [
+        Expanded(
+            child: Padding(
+          padding: EdgeInsets.fromLTRB(5, 5, 5, 0),
+          child: Column(
+            children: [
+              _builTextInput(),
+              Expanded(
+                  child: SingleChildScrollView(
+                      child: Column(
+                children: [
+                  _buildDependantsInput(),
+                  _buildYoungDependants(),
+                  _buildTaxRateToggleButtons(),
+                ],
+              ))),
+              Padding(padding: EdgeInsets.all(5)),
+              Expanded(child: _buildResultView()),
+              //_buildResetButton(),
+              _buildEasyMoneyButtons(),
+              NumPad(
+                height: 190,
+                onPressed: (value) {
+                  _vibrate();
+                  _controller.insertInt(value);
+                },
+                onBackspace: () {
+                  _vibrate();
+                  _controller.removeNumber();
+                },
+                onClear: () {
+                  _vibrate();
+                  _clearAll();
+                },
+              ),
+            ],
+          ),
+        ))
+      ])),
     );
   }
 }

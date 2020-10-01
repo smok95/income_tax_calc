@@ -1,6 +1,7 @@
 import 'package:admob_flutter/admob_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:income_tax_calc/my_admob.dart';
 
 import 'income_tax_calc_page.dart';
@@ -22,20 +23,21 @@ class MyApp extends StatelessWidget {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]);
-
-    return MaterialApp(
+    final ad = MyAdmob.createAdmobBanner(adSize: AdmobBannerSize.BANNER);
+    return GetMaterialApp(
         title: '소득세 계산기',
         theme: ThemeData(
-          primarySwatch: Colors.blueGrey,
+          primarySwatch: Colors.grey,
           visualDensity: VisualDensity.adaptivePlatformDensity,
         ),
         home: Scaffold(
-          backgroundColor: Colors.white,
-          body: SafeArea(
-              child: Column(children: [
-            MyAdmob.createAdmobBanner(adSize: AdmobBannerSize.FULL_BANNER),
-            Expanded(child: IncomeTaxCalcPage())
-          ])),
-        ));
+            body: SafeArea(
+                child: Column(children: [
+          Expanded(
+              child: IncomeTaxCalcPage(
+            adBanner: ad,
+          )),
+          ad
+        ]))));
   }
 }
