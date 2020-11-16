@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## 1.2.1 - 2020-11-16
+### Changed
+- 부양가족 및 자녀 수 유효범위 초과시 안내메시지 수정
+- 빠른 숫자입력 flutter_jk.NumberButtonBar로 교체
+
+### Removed
+- int_stepper.dart 삭제(flutter_jk.NumStepper로 교체)
+- income_tax_table.dart 삭제(flutter_jk참조 하도록 수정)
+
 ## 1.2.0 - 2020-10-01
 ### Added
 - 근로소득간이세액표 pdf 보기 기능 추가

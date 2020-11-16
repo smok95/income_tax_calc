@@ -4,15 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_jk/flutter_jk.dart'; // KrUtils
 import 'package:flutter_money_formatter/flutter_money_formatter.dart';
 import 'package:get/get.dart';
-import 'package:income_tax_calc/income_tax_table.dart';
-import 'package:income_tax_calc/int_stepper.dart';
-import 'package:income_tax_calc/num_pad.dart';
-import 'package:income_tax_calc/pdf_view_page.dart';
 import 'package:package_info/package_info.dart';
 import 'package:vibration/vibration.dart';
 
+import 'num_pad.dart';
+import 'pdf_view_page.dart';
 import 'money_masked_text_controller.dart';
-import 'utils.dart';
 
 class IncomeTaxCalcPage extends StatefulWidget {
   final Widget adBanner;
@@ -71,9 +68,10 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
   }
 
   _calc() {
-    _tax = IncomeTaxTable.calc(_salary, _dependants + _youngDependants,
+    final calculator = IncomeTaxCalc();
+    _tax = calculator.calc(_salary, _dependants + _youngDependants,
         taxRate: _taxRate);
-    _localTax = IncomeTaxTable.calcLocalIncomeTax(_tax);
+    _localTax = calculator.calcLocalIncomeTax(_tax);
     setState(() {});
   }
 
@@ -218,51 +216,6 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
     }
   }
 
-  Widget _buildEasyMoneyButton(int unit) {
-    return InkWell(
-      borderRadius: BorderRadius.all(_radius),
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(15.0, 5.0, 15.0, 5.0),
-        child: Text(
-          '+${unit}만원',
-          style: TextStyle(fontSize: 15.0),
-        ),
-      ),
-      onTap: () {
-        _vibrate();
-
-        final value = _controller.numberValue + unit * 10000;
-
-        if (value > _maximumSalary) {
-          _showFlushbar(
-              '최대 ${KrUtils.numberToManwon(_maximumSalary)} 까지만 계산 가능합니다.');
-          return;
-        }
-
-        _controller.updateValue(value.toDouble());
-        _salary = value.toInt();
-        _calc();
-      },
-    );
-  }
-
-  /// 급여액 입력 편의 버튼
-  Widget _buildEasyMoneyButtons() {
-    return Container(
-      padding: EdgeInsets.only(top: 10.0, bottom: 1.0),
-      decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: _fillColor, width: 1))),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _buildEasyMoneyButton(100),
-          _buildEasyMoneyButton(10),
-          _buildEasyMoneyButton(1)
-        ],
-      ),
-    );
-  }
-
   Widget _buildNumberStepper(
       final String label, int value, void Function(int) onChanged,
       {int minimum = 1, int maximum = 999}) {
@@ -270,7 +223,7 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(label),
-        IntStepper(
+        NumStepper(
             width: 150.0,
             minimum: minimum,
             maximum: maximum,
@@ -288,7 +241,7 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
       _vibrate();
 
       if (value <= _youngDependants) {
-        _showFlushbar('부양가족의 수는 자녀 수보다 커야 합니다.');
+        _showFlushbar('부양가족의 수는 자녀 수보다 많아야 합니다.');
         value += 1;
       }
 
@@ -322,7 +275,7 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
       _vibrate();
 
       if (value >= _dependants) {
-        _showFlushbar('자녀의 수는 부양가족 수보다 작아야 합니다.');
+        _showFlushbar('자녀의 수는 부양가족 수보다 적어야 합니다.');
         value = _dependants - 1;
       }
 
@@ -516,7 +469,28 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
               Padding(padding: EdgeInsets.all(5)),
               Expanded(child: _buildResultView()),
               //_buildResetButton(),
-              _buildEasyMoneyButtons(),
+              NumberButtonBar(
+                [100, 10, 1],
+                suffix: '만',
+                onPressed: (value) {
+                  print('NumberButtonBar.onPressed=$value');
+
+                  _vibrate();
+
+                  var newVal = _controller.numberValue + value * 10000;
+                  if (newVal < 0) newVal = 0;
+                  if (newVal > _maximumSalary) {
+                    _showFlushbar(
+                        '최대 ${KrUtils.numberToManwon(_maximumSalary)} 까지만 계산 가능합니다.');
+                    return;
+                  }
+
+                  _controller.updateValue(newVal.toDouble());
+                  _salary = newVal.toInt();
+                  _calc();
+                },
+              ),
+
               NumPad(
                 height: 190,
                 onPressed: (value) {
