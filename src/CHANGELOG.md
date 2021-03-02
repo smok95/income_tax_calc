@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## 1.2.2+5 - 2021-03-02
+### Changed
+- pdf화면에서 광고제거
+- get: ^3.12.1 -> get: ^3.25.6
+
 ## 1.2.1 - 2020-11-16
 ### Changed
 - 부양가족 및 자녀 수 유효범위 초과시 안내메시지 수정

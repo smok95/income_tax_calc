@@ -420,7 +420,11 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
             final document = await PDFDocument.fromAsset(assetFile);
 
             Get.to(PdfViewPage(document,
-                bottomAd: widget.adBanner, title: taxTable));
+                /*
+                admob광고가 차단되어 원인을 알 수 없어 일단 pdfview에서 광고를 제거해보고 올린다.
+                 */
+                // 2021.03.02 광고제거 bottomAd: widget.adBanner,
+                title: taxTable));
             /*
             final file = await Utils.fromAsset(
                 //'assets/_nts_data_info_조회_2020년_근로소득_간이세액표(조견표).pdf',
