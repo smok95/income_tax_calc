@@ -6,10 +6,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- get: ^3.25.6 -> get: ^4.1.4
+- 2021년 기준에 맞춰 수정
+
+### Removed
+- money_masted_text_controller.dart 삭제 (flutter_jk 참조하도록 변경)
+- num_pad.dart 삭제 (flutter_jk에서 참조하도록 변경)
+
 ## 1.2.2+5 - 2021-03-02
 ### Changed
 - pdf화면에서 광고제거
 - get: ^3.12.1 -> get: ^3.25.6
+- flutter_money_formatter --> money_formatter 로 교체
 
 ## 1.2.1 - 2020-11-16
 ### Changed

@@ -2,14 +2,12 @@ import 'package:advance_pdf_viewer/advance_pdf_viewer.dart';
 import 'package:flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_jk/flutter_jk.dart'; // KrUtils
-import 'package:flutter_money_formatter/flutter_money_formatter.dart';
 import 'package:get/get.dart';
+import 'package:money_formatter/money_formatter.dart';
 import 'package:package_info/package_info.dart';
 import 'package:vibration/vibration.dart';
 
-import 'num_pad.dart';
 import 'pdf_view_page.dart';
-import 'money_masked_text_controller.dart';
 
 class IncomeTaxCalcPage extends StatefulWidget {
   final Widget adBanner;
@@ -332,7 +330,7 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
   /// 계산결과 뷰
   Widget _buildResultView() {
     String getMoneyString(int value) {
-      return FlutterMoneyFormatter(amount: value.toDouble())
+      return MoneyFormatter(amount: value.toDouble())
           .output
           .withoutFractionDigits;
     }
@@ -474,14 +472,17 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
               Expanded(child: _buildResultView()),
               //_buildResetButton(),
               NumberButtonBar(
-                [100, 10, 1],
-                suffix: '만',
-                onPressed: (value) {
-                  print('NumberButtonBar.onPressed=$value');
+                [
+                  NumberButtonItem(1000000, '100만'),
+                  NumberButtonItem(100000, '10만'),
+                  NumberButtonItem(10000, '1만'),
+                ],
+                onPressed: (item) {
+                  print('NumberButtonBar.onPressed=$item');
 
                   _vibrate();
 
-                  var newVal = _controller.numberValue + value * 10000;
+                  var newVal = _controller.numberValue + item.value;
                   if (newVal < 0) newVal = 0;
                   if (newVal > _maximumSalary) {
                     _showFlushbar(
