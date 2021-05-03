@@ -19,6 +19,9 @@ class IncomeTaxCalcPage extends StatefulWidget {
 }
 
 class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
+  /// 계산기준일
+  final DateTime baseDate = DateTime(2021, 2, 18);
+
   int _dependants = 1;
   int _youngDependants = 0;
   int _salary = 0;
@@ -66,7 +69,7 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
   }
 
   _calc() {
-    final calculator = IncomeTaxCalc();
+    final calculator = IncomeTaxCalc(baseDate: baseDate);
     _tax = calculator.calc(_salary, _dependants + _youngDependants,
         taxRate: _taxRate);
     _localTax = calculator.calcLocalIncomeTax(_tax);
@@ -133,20 +136,7 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
                 applicationLegalese: '오늘 하루도 수고하셨습니다 :)\n',
                 children: [
                   Text(
-                    '''"소득세 계산기"는 2020년 2월 개정된 근로소득 간이세액표 기준으로 만들어졌습니다.
-해당 프로그램의 계산결과는 참고용 자료이며, 실제 징수세금과는 차이가 있을 수 있습니다.
-                
-- 월급여액은 비과세 소득을 제외한 금액입니다.
-- "부양가족 수(본인포함)"는 본인을 포함한 기본공제대상자에 해당하는 부양가족의 수입니다.
-- "20세 이하 자녀 수"는 기본공제대상자에 해당하는 20세 이하의 자녀수입니다.
-- 연간 소득금액이 100만원을 초과하는 경우에는 기본공제대상자에서 제외되며, 
-  20세 이하의 자녀이더라도 연간 소득금액이 100만원을 초과하면 자녀수에서 제외합니다.
-
-* 근로자는 원천징수세액을 근로소득간이세액표에 따른 세액의 80%, 100%, 120% 중에서 선택할 수 있습니다.
-(원천징수의무자에게 '소득세 원천징수세액 조정신청서'를 제출하여야 함.)
-
-문의 : kjk15881588@gmail.com
-                ''',
+                    _helpText(),
                     style: TextStyle(fontSize: 15),
                   )
                 ]);
@@ -414,7 +404,7 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
           leading: Icon(Icons.picture_as_pdf),
           title: Text(taxTable),
           onTap: () async {
-            const String assetFile = 'assets/2020_income_tax_table.pdf';
+            String assetFile = 'assets/${baseDate.year}_income_tax_table.pdf';
             final document = await PDFDocument.fromAsset(assetFile);
 
             Get.to(PdfViewPage(document,
@@ -516,5 +506,44 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
         ))
       ])),
     );
+  }
+
+  String _helpText() {
+    // 2021년 근로소득 적용일 (21.2.17일 부터)
+    // https://teht.hometax.go.kr/websquare/websquare.html?w2xPath=/ui/sf/a/a/UTESFAAF99.xml
+    final ymd20210217 = DateTime(2021, 2, 17);
+    if (baseDate.isBefore(ymd20210217)) {
+      // 2021년 기준 적용 이전
+      return '''"소득세 계산기"는 2020년 2월 개정된 근로소득 간이세액표 기준으로 만들어졌습니다.
+해당 프로그램의 계산결과는 참고용 자료이며, 실제 징수세금과는 차이가 있을 수 있습니다.
+                
+- 월급여액은 비과세 소득을 제외한 금액입니다.
+- "부양가족 수(본인포함)"는 본인을 포함한 기본공제대상자에 해당하는 부양가족의 수입니다.
+- "20세 이하 자녀 수"는 기본공제대상자에 해당하는 20세 이하의 자녀수입니다.
+- 연간 소득금액이 100만원을 초과하는 경우에는 기본공제대상자에서 제외되며, 
+  20세 이하의 자녀이더라도 연간 소득금액이 100만원을 초과하면 자녀수에서 제외합니다.
+
+* 근로자는 원천징수세액을 근로소득간이세액표에 따른 세액의 80%, 100%, 120% 중에서 선택할 수 있습니다.
+(원천징수의무자에게 '소득세 원천징수세액 조정신청서'를 제출하여야 함.)
+
+문의 : kjk15881588@gmail.com
+                ''';
+    } else {
+      // 2021년 적용 기준
+      return '''"소득세 계산기"는 2021년 2월 개정된 근로소득 간이세액표 기준으로 만들어졌습니다.
+해당 프로그램의 계산결과는 참고용 자료이며, 실제 징수세금과는 차이가 있을 수 있습니다.
+                
+- 월급여액은 비과세 소득을 제외한 금액입니다.
+- "부양가족 수(본인포함)"는 본인을 포함한 기본공제대상자에 해당하는 부양가족의 수입니다.
+- "20세 이하 자녀 수"는 기본공제대상자에 해당하는 7세 이상 20세 이하의 자녀수입니다.
+- 연간 소득금액이 100만원을 초과하는 경우에는 기본공제대상자에서 제외되며, 
+   7세 이상 20세 이하의 자녀이더라도 연간 소득금액이 100만원을 초과하면 자녀수에서 제외합니다.
+
+* 근로자는 원천징수세액을 근로소득간이세액표에 따른 세액의 80%, 100%, 120% 중에서 선택할 수 있습니다.
+(원천징수의무자에게 '소득세 원천징수세액 조정신청서'를 제출하여야 함.)
+
+문의 : kjk15881588@gmail.com
+                ''';
+    }
   }
 }

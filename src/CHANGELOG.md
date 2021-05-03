@@ -6,6 +6,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## 1.3.0+6 - 2021-05-03
 ### Changed
 - get: ^3.25.6 -> get: ^4.1.4
 - 2021년 기준에 맞춰 수정
