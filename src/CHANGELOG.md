@@ -6,6 +6,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## 1.4.0+7 - 2022-02-06
+### Changed
+- null-safety 적용
+- advance_pdf_viewer: ^1.2.0 -> advance_pdf_viewer: ^2.0.1
+- advance_pdf_viewer: ^2.0.1 android에서 crash 발생으로 인해 임시로 해당 문제를 수정한 repo참조(https://github.com/ncdm-stldr/pdf_viewer.git)
+- path_provider: ^1.6.18 -> path_provider: ^2.0.8
+- admob_flutter: ^0.3.4 -> google_mobile_ads: ^1.0.1
+- get: ^4.1.4 -> get: ^4.6.1
+- flushbar: ^1.10.4 -> another_flushbar: ^1.10.28
+- package_info: ^0.4.1 -> package_info_plus: ^1.3.0
+- vibration: ^1.4.0 -> vibration: ^1.7.4-nullsafety.0
+
+### Added
+- flutter_screenutil: ^5.1.1
+
 ## 1.3.0+6 - 2021-05-03
 ### Changed
 - get: ^3.25.6 -> get: ^4.1.4

@@ -1,7 +1,9 @@
 import 'dart:io';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' as Foundation;
-import 'package:admob_flutter/admob_flutter.dart';
+import 'package:flutter/material.dart';
+import 'package:little_easy_admob/little_easy_admob.dart';
+
+import 'my_private_data.dart';
 
 class MyAdmob {
   /// {@template firebase_admob.testAdUnitId}
@@ -15,41 +17,26 @@ class MyAdmob {
       ? 'ca-app-pub-3940256099942544/6300978111'
       : 'ca-app-pub-3940256099942544/2934735716';
 
-  static String get appId => "ca-app-pub-0843163070431190~8508645521";
+  static String get appId => MyPrivateData.adMobAppId;
   static String get unitId {
     return Foundation.kDebugMode
         ? testAdUnitId
-        : 'ca-app-pub-0843163070431190/9247012127';
+        : MyPrivateData.adMobUnitIdBanner1;
+  }
+
+  /// AppOpen 광고 단위 ID
+  static String get unitIdAppOpen {
+    return Foundation.kDebugMode
+        ? 'ca-app-pub-3940256099942544/3419835294'
+        : MyPrivateData.adMobUnitIdAppOpen1;
   }
 
   /// Admob 배너 생성
-  static AdmobBanner createAdmobBanner(
-      {AdmobBannerSize adSize = AdmobBannerSize.LARGE_BANNER}) {
-    return AdmobBanner(
-      adUnitId: unitId,
-      adSize: adSize,
-    );
+  static Widget createBannerAd() {
+    return AnchoredAdaptiveBannerAdWidget(adUnitId: unitId);
   }
 
-  static void initialize() {
-    Admob.initialize(appId);
-  }
-
-  /// 화면크기에 맞는 배너 높이값을 구한다.
-  double getSmartBannerHeight(BuildContext context) {
-    // 참고페이지 : https://stackoverflow.com/questions/50935918/how-to-get-banner-size-of-smart-banner
-
-    MediaQueryData mediaScreen = MediaQuery.of(context);
-    double deviceHeight = mediaScreen.orientation == Orientation.portrait
-        ? mediaScreen.size.height
-        : mediaScreen.size.width;
-
-    if (deviceHeight <= 400.0) {
-      return 32.0;
-    } else if (deviceHeight > 720.0) {
-      return 90.0;
-    } else {
-      return 50.0;
-    }
+  static void initialize() async {
+    await LittleEasyAdmob.initialize(requestTrackingAuthorization: true);
   }
 }

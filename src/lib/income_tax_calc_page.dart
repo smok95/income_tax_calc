@@ -1,16 +1,17 @@
 import 'package:advance_pdf_viewer/advance_pdf_viewer.dart';
-import 'package:flushbar/flushbar.dart';
+import 'package:another_flushbar/flushbar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_jk/flutter_jk.dart'; // KrUtils
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:money_formatter/money_formatter.dart';
-import 'package:package_info/package_info.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:vibration/vibration.dart';
 
 import 'pdf_view_page.dart';
 
 class IncomeTaxCalcPage extends StatefulWidget {
-  final Widget adBanner;
+  final Widget? adBanner;
 
   IncomeTaxCalcPage({this.adBanner});
 
@@ -20,7 +21,7 @@ class IncomeTaxCalcPage extends StatefulWidget {
 
 class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
   /// 계산기준일
-  final DateTime baseDate = DateTime(2021, 2, 18);
+  final DateTime baseDate = DateTime.now();
 
   int _dependants = 1;
   int _youngDependants = 0;
@@ -41,9 +42,10 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
 
   /// 선택 세율(80%, 100%, 120%)
   double _taxRate = 1.0;
-  Flushbar _flushbar;
+  Flushbar? _flushbar;
 
-  Color _fillColor = Colors.grey[100];
+  Color _labelColor = Colors.black54;
+  Color _fillColor = Colors.grey.shade100;
   MoneyMaskedTextController _controller = MoneyMaskedTextController(
       precision: 0, thousandSeparator: ',', decimalSeparator: '');
 
@@ -124,7 +126,7 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
       children: [
         Text(
           _title,
-          style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold),
         ),
         IconButton(
           icon: Icon(Icons.info_outline),
@@ -137,7 +139,7 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
                 children: [
                   Text(
                     _helpText(),
-                    style: TextStyle(fontSize: 15),
+                    style: TextStyle(fontSize: 15.sp),
                   )
                 ]);
           },
@@ -153,7 +155,8 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
 
   /// 급여액 입력란
   Widget _builTextInput() {
-    String moneyString = _salary > 0 ? KrUtils.numberToManwon(_salary) : '';
+    String moneyString =
+        _salary > 0 ? '  ${KrUtils.numberToManwon(_salary)}' : '';
 
     return TextField(
       readOnly: true,
@@ -161,10 +164,11 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
       autofocus: true,
       controller: _controller,
       decoration: InputDecoration(
-        labelText: '월 급여액  ' + moneyString,
+        labelText: '월 급여액$moneyString',
         suffixText: '원',
         isDense: true,
-        labelStyle: TextStyle(fontSize: 20.0, fontWeight: FontWeight.normal),
+        labelStyle: TextStyle(
+            color: _labelColor, fontSize: 18.sp, fontWeight: FontWeight.normal),
         floatingLabelBehavior: FloatingLabelBehavior.always,
         hintText: '월급여액',
         border: UnderlineInputBorder(
@@ -174,7 +178,7 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
         fillColor: _fillColor,
       ),
       textAlign: TextAlign.right,
-      style: TextStyle(fontSize: 25.0, fontWeight: FontWeight.bold),
+      style: TextStyle(fontSize: 25.sp, fontWeight: FontWeight.bold),
       keyboardType:
           TextInputType.numberWithOptions(signed: true, decimal: false),
       onChanged: (value) {
@@ -199,7 +203,8 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
   }
 
   void _vibrate() async {
-    if (await Vibration.hasVibrator()) {
+    final result = await Vibration.hasVibrator();
+    if (result != null && result) {
       Vibration.vibrate(duration: 3);
     }
   }
@@ -207,25 +212,36 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
   Widget _buildNumberStepper(
       final String label, int value, void Function(int) onChanged,
       {int minimum = 1, int maximum = 999}) {
+    final fontSize = 15.sp;
+
+    final stepperFgColor = Colors.blue.shade800;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label),
+        Text(
+          label,
+          style: TextStyle(color: _labelColor),
+        ),
         NumStepper(
-            width: 150.0,
-            minimum: minimum,
-            maximum: maximum,
-            rightSymbol: ' 명',
-            textStyle: TextStyle(fontSize: 15),
-            value: value,
-            onChanged: onChanged)
+          width: 150.sp,
+          minimum: minimum,
+          maximum: maximum,
+          rightSymbol: ' 명',
+          textStyle: TextStyle(fontSize: fontSize, fontWeight: FontWeight.bold),
+          buttonColor: stepperFgColor,
+          value: value,
+          onChanged: (value) {
+            onChanged(value!);
+          },
+        )
       ],
     );
   }
 
   /// 부양가족수 설정 컨트롤
   Widget _buildDependantsInput() {
-    return _buildNumberStepper('부양가족 수(본인포함) ', _dependants, (value) {
+    return _buildNumberStepper('부양가족 수 ( 본인포함 ) ', _dependants, (value) {
       _vibrate();
 
       if (value <= _youngDependants) {
@@ -240,7 +256,7 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
 
   void _showFlushbar(final String message) {
     if (_flushbar?.isShowing() ?? false) {
-      _flushbar.dismiss();
+      _flushbar!.dismiss();
     }
 
     _flushbar = Flushbar(
@@ -253,12 +269,12 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
       flushbarPosition: FlushbarPosition.TOP,
     );
 
-    _flushbar.show(context);
+    _flushbar!.show(context);
   }
 
   /// 20세 이하 자녀 설정 컨트롤
   Widget _buildYoungDependants() {
-    return _buildNumberStepper('20세 이하 자녀 수 ', _youngDependants, (value) {
+    return _buildNumberStepper('자녀 수 ( 7 ~ 20세 )', _youngDependants, (value) {
       print(value);
       _vibrate();
 
@@ -280,7 +296,7 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
       return Text(
         data,
         style: TextStyle(
-            fontSize: selected ? 15 : 14,
+            fontSize: selected ? 15.sp : 12.sp,
             fontWeight: selected ? FontWeight.bold : FontWeight.normal),
       );
     }
@@ -288,7 +304,10 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text('원천징수 세율'),
+        Text(
+          '원천징수 세율',
+          style: TextStyle(color: _labelColor),
+        ),
         ToggleButtons(
           constraints: BoxConstraints(minHeight: 25, minWidth: 48),
           children: [
@@ -330,8 +349,10 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
     final total = getMoneyString(_tax + _localTax);
 
     Widget createResultRow(String label, String value) {
-      final style = TextStyle(fontWeight: FontWeight.bold, fontSize: 17);
-      final labelStyle = TextStyle(fontWeight: FontWeight.normal, fontSize: 17);
+      final fontSize = 17.sp;
+      final style = TextStyle(fontWeight: FontWeight.bold, fontSize: fontSize);
+      final labelStyle =
+          TextStyle(fontWeight: FontWeight.normal, fontSize: fontSize);
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -342,7 +363,7 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
     }
 
     return Container(
-      padding: EdgeInsets.all(10),
+      padding: EdgeInsets.all(10.sp),
       width: double.infinity,
       decoration: BoxDecoration(
           borderRadius: BorderRadius.all(_radius), color: Colors.amberAccent),
@@ -404,7 +425,11 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
           leading: Icon(Icons.picture_as_pdf),
           title: Text(taxTable),
           onTap: () async {
-            String assetFile = 'assets/${baseDate.year}_income_tax_table.pdf';
+            // baseDate.year를 사용하는 경우, 새해가 되는 경우에 파일이 없을 수 있기 때문에
+            // 연도를 하드코딩해서 사용한다. 2022.02.05
+            // jktest -> 하드코딩안하고 사용할 수 있게 수정필요.
+            final year = 2021; // baseDate.year
+            String assetFile = 'assets/${year}_income_tax_table.pdf';
             final document = await PDFDocument.fromAsset(assetFile);
 
             Get.to(PdfViewPage(document,
@@ -433,7 +458,8 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
 
   @override
   Widget build(BuildContext context) {
-    const Color bgColor = Colors.white;
+    final bgColor = Colors.blueGrey.shade100;
+    final inset = 10.sp;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: bgColor,
@@ -442,69 +468,88 @@ class _IncometaxCalcState extends State<IncomeTaxCalcPage> {
       ),
       drawer: _buildDrawer(),
       body: SafeArea(
-          child: Column(children: [
-        Expanded(
-            child: Padding(
-          padding: EdgeInsets.fromLTRB(5, 5, 5, 0),
-          child: Column(
-            children: [
-              _builTextInput(),
+        child: Ink(
+            color: bgColor,
+            child: Column(children: [
               Expanded(
-                  child: SingleChildScrollView(
+                  child: Padding(
+                padding: EdgeInsets.fromLTRB(inset, 0, inset, 0),
+                child: Column(
+                  children: [
+                    /// 급여액 입력란
+                    _builTextInput(),
+                    SizedBox(height: inset),
+                    Container(
+                      decoration: RoundBoxDecoration(
+                          color: Colors.grey.shade100, radius: _radius.x),
+                      child: Padding(
+                        padding: EdgeInsets.all(inset),
+                        child: Column(
+                          children: [
+                            _buildDependantsInput(),
+                            _buildYoungDependants(),
+                            _buildTaxRateToggleButtons(),
+                          ],
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: inset),
+                    Expanded(child: _buildResultView()),
+                    SizedBox(height: inset),
+                    Container(
+                      decoration: RoundBoxDecoration(
+                          color: Colors.grey.shade100, radius: _radius.x),
                       child: Column(
-                children: [
-                  _buildDependantsInput(),
-                  _buildYoungDependants(),
-                  _buildTaxRateToggleButtons(),
-                ],
-              ))),
-              Padding(padding: EdgeInsets.all(5)),
-              Expanded(child: _buildResultView()),
-              //_buildResetButton(),
-              NumberButtonBar(
-                [
-                  NumberButtonItem(1000000, '100만'),
-                  NumberButtonItem(100000, '10만'),
-                  NumberButtonItem(10000, '1만'),
-                ],
-                onPressed: (item) {
-                  print('NumberButtonBar.onPressed=$item');
+                        children: [
+                          NumberButtonBar(
+                            [
+                              NumberButtonItem(1000000, '100만'),
+                              NumberButtonItem(100000, '10만'),
+                              NumberButtonItem(10000, '1만'),
+                            ],
+                            borderColor: Colors.black12,
+                            onPressed: (item) {
+                              print('NumberButtonBar.onPressed=$item');
 
-                  _vibrate();
+                              _vibrate();
 
-                  var newVal = _controller.numberValue + item.value;
-                  if (newVal < 0) newVal = 0;
-                  if (newVal > _maximumSalary) {
-                    _showFlushbar(
-                        '최대 ${KrUtils.numberToManwon(_maximumSalary)} 까지만 계산 가능합니다.');
-                    return;
-                  }
+                              var newVal = _controller.numberValue + item.value;
+                              if (newVal < 0) newVal = 0;
+                              if (newVal > _maximumSalary) {
+                                _showFlushbar(
+                                    '최대 ${KrUtils.numberToManwon(_maximumSalary)} 까지만 계산 가능합니다.');
+                                return;
+                              }
 
-                  _controller.updateValue(newVal.toDouble());
-                  _salary = newVal.toInt();
-                  _calc();
-                },
-              ),
-
-              NumPad(
-                height: 190,
-                onPressed: (value) {
-                  _vibrate();
-                  _controller.insertInt(value);
-                },
-                onBackspace: () {
-                  _vibrate();
-                  _controller.removeNumber();
-                },
-                onClear: () {
-                  _vibrate();
-                  _clearAll();
-                },
-              ),
-            ],
-          ),
-        ))
-      ])),
+                              _controller.updateValue(newVal.toDouble());
+                              _salary = newVal.toInt();
+                              _calc();
+                            },
+                          ),
+                          NumPad(
+                            height: 180.sp,
+                            onPressed: (value) {
+                              _vibrate();
+                              _controller.insertInt(value);
+                            },
+                            onBackspace: () {
+                              _vibrate();
+                              _controller.removeNumber();
+                            },
+                            onClear: () {
+                              _vibrate();
+                              _clearAll();
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(height: inset),
+                  ],
+                ),
+              ))
+            ])),
+      ),
     );
   }
 
