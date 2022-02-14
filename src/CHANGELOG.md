@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## 1.4.1+8 - 2022-02-14 (릴리즈전...)
+### Fixed
+- Fatal Exception: java.lang.LinkageError 오류 수정
+  https://github.com/googleads/googleads-mobile-flutter/issues/471#issuecomment-1038063215
+
 ## 1.4.0+7 - 2022-02-06
 ### Changed
 - null-safety 적용
